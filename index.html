@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LethalLaunch — The World's First AI & Tech Super Marketplace</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --black: #050505;
+      --red: #ff2020;
+      --red-dim: #cc1a1a;
+      --white: #f5f5f0;
+      --grey: #999;
+      --card-bg: rgba(255,255,255,0.03);
+      --border: rgba(255,255,255,0.07);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* NOISE OVERLAY */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    /* GLOW BLOB */
+    .glow {
+      position: fixed;
+      width: 700px;
+      height: 700px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,32,32,0.12) 0%, transparent 70%);
+      top: -200px;
+      right: -200px;
+      pointer-events: none;
+      z-index: 0;
+      animation: pulse 6s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.7; }
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 48px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(5,5,5,0.8);
+      backdrop-filter: blur(20px);
+    }
+
+    .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      letter-spacing: 3px;
+      color: var(--white);
+      text-decoration: none;
+    }
+
+    .logo span { color: var(--red); }
+
+    .nav-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--red);
+      border: 1px solid var(--red);
+      padding: 4px 12px;
+      letter-spacing: 2px;
+      animation: blink 2s step-end infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* HERO */
+    .hero {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+    }
+
+    .hero-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--red);
+      text-transform: uppercase;
+      margin-bottom: 32px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.2s;
+    }
+
+    .hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(72px, 14vw, 160px);
+      line-height: 0.9;
+      letter-spacing: 4px;
+      margin-bottom: 8px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.4s;
+    }
+
+    .hero-title .red { color: var(--red); }
+
+    .hero-subtitle-line {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(28px, 5vw, 56px);
+      letter-spacing: 8px;
+      color: var(--grey);
+      margin-bottom: 48px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.6s;
+    }
+
+    .hero-desc {
+      font-size: 18px;
+      font-weight: 400;
+      color: rgba(245,245,240,0.6);
+      max-width: 560px;
+      line-height: 1.7;
+      margin-bottom: 56px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.8s;
+    }
+
+    .hero-desc strong {
+      color: var(--white);
+      font-weight: 600;
+    }
+
+    /* TAGS */
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 56px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 1s;
+    }
+
+    .tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 1px;
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      color: var(--grey);
+      border-radius: 2px;
+    }
+
+    /* CTA */
+    .cta-group {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 1.2s;
+    }
+
+    .btn-primary {
+      display: inline-block;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--black);
+      background: var(--red);
+      padding: 18px 40px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: white;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(255,32,32,0.4); }
+    .btn-primary:hover::after { opacity: 0.1; }
+
+    .btn-secondary {
+      display: inline-block;
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--white);
+      background: transparent;
+      padding: 18px 40px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover { border-color: rgba(255,255,255,0.3); background: var(--card-bg); }
+
+    /* DIVIDER */
+    .divider {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 0 48px;
+      margin: 0 0 80px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 1.4s;
+    }
+
+    .divider-line { flex: 1; height: 1px; background: var(--border); }
+    .divider-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--grey);
+    }
+
+    /* STATS */
+    .stats {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      margin: 0 48px 100px;
+      border: 1px solid var(--border);
+    }
+
+    .stat {
+      background: var(--black);
+      padding: 48px 32px;
+      text-align: center;
+      transition: background 0.2s;
+    }
+
+    .stat:hover { background: var(--card-bg); }
+
+    .stat-number {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 56px;
+      color: var(--red);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--grey);
+    }
+
+    /* MARQUEE */
+    .marquee-wrap {
+      position: relative;
+      z-index: 1;
+      overflow: hidden;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 0;
+      margin-bottom: 100px;
+      background: rgba(255,32,32,0.03);
+    }
+
+    .marquee {
+      display: flex;
+      gap: 64px;
+      width: max-content;
+      animation: marquee 20s linear infinite;
+    }
+
+    .marquee-item {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 4px;
+      white-space: nowrap;
+      color: var(--grey);
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .marquee-item span { color: var(--red); font-size: 14px; }
+
+    @keyframes marquee {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* FEATURES */
+    .section {
+      position: relative;
+      z-index: 1;
+      padding: 0 48px 100px;
+    }
+
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--red);
+      text-transform: uppercase;
+      margin-bottom: 48px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .feature {
+      background: var(--black);
+      padding: 40px;
+      transition: background 0.3s;
+      cursor: default;
+    }
+
+    .feature:hover { background: rgba(255,32,32,0.04); }
+
+    .feature-icon {
+      font-size: 32px;
+      margin-bottom: 24px;
+      display: block;
+    }
+
+    .feature-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+      margin-bottom: 12px;
+      color: var(--white);
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      line-height: 1.7;
+      color: rgba(245,245,240,0.5);
+    }
+
+    /* WAITLIST SECTION */
+    .waitlist-section {
+      position: relative;
+      z-index: 1;
+      margin: 0 48px 100px;
+      border: 1px solid var(--border);
+      padding: 80px;
+      text-align: center;
+      background: var(--card-bg);
+      overflow: hidden;
+    }
+
+    .waitlist-section::before {
+      content: '';
+      position: absolute;
+      bottom: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(255,32,32,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .waitlist-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(40px, 6vw, 72px);
+      letter-spacing: 4px;
+      margin-bottom: 16px;
+    }
+
+    .waitlist-desc {
+      font-size: 16px;
+      color: var(--grey);
+      margin-bottom: 48px;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.7;
+    }
+
+    /* FOOTER */
+    footer {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 40px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: 3px;
+      color: var(--grey);
+    }
+
+    .footer-logo span { color: var(--red); }
+
+    .footer-copy {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: rgba(255,255,255,0.2);
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      nav { padding: 20px 24px; }
+      .stats { grid-template-columns: 1fr; margin: 0 24px 60px; }
+      .section { padding: 0 24px 60px; }
+      .waitlist-section { margin: 0 24px 60px; padding: 48px 24px; }
+      footer { padding: 32px 24px; }
+      .divider { padding: 0 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="glow"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">Lethal<span>Launch</span></a>
+  <div class="nav-tag">COMING SOON</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">// The Future of Digital Commerce</div>
+  <h1 class="hero-title">LETHAL<span class="red">LAUNCH</span></h1>
+  <div class="hero-subtitle-line">THE SUPER MARKETPLACE</div>
+  <p class="hero-desc">
+    Discover. Compare. Buy. <strong>AI Tools, SaaS, Digital Products & More</strong> — all in one deadly powerful platform built for the next generation of builders.
+  </p>
+  <div class="tags">
+    <div class="tag">AI TOOLS</div>
+    <div class="tag">SAAS</div>
+    <div class="tag">DIGITAL PRODUCTS</div>
+    <div class="tag">CONSULTANCY</div>
+    <div class="tag">TECH</div>
+  </div>
+  <div class="cta-group">
+    <a href="https://forms.gle/your-google-form-link" target="_blank" class="btn-primary">Join The Waitlist 🚀</a>
+    <a href="#features" class="btn-secondary">Learn More</a>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee">
+    <div class="marquee-item">AI TOOLS <span>✦</span></div>
+    <div class="marquee-item">SAAS MARKETPLACE <span>✦</span></div>
+    <div class="marquee-item">DIGITAL PRODUCTS <span>✦</span></div>
+    <div class="marquee-item">TECH SOLUTIONS <span>✦</span></div>
+    <div class="marquee-item">CONSULTANCY <span>✦</span></div>
+    <div class="marquee-item">LETHALLAUNCH <span>✦</span></div>
+    <div class="marquee-item">AI TOOLS <span>✦</span></div>
+    <div class="marquee-item">SAAS MARKETPLACE <span>✦</span></div>
+    <div class="marquee-item">DIGITAL PRODUCTS <span>✦</span></div>
+    <div class="marquee-item">TECH SOLUTIONS <span>✦</span></div>
+    <div class="marquee-item">CONSULTANCY <span>✦</span></div>
+    <div class="marquee-item">LETHALLAUNCH <span>✦</span></div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat">
+    <div class="stat-number">$1.8T</div>
+    <div class="stat-label">AI Market by 2030</div>
+  </div>
+  <div class="stat">
+    <div class="stat-number">10+</div>
+    <div class="stat-label">Marketplaces in One</div>
+  </div>
+  <div class="stat">
+    <div class="stat-number">∞</div>
+    <div class="stat-label">Possibilities</div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="section-label">// What We're Building</div>
+  <div class="features-grid">
+    <div class="feature">
+      <span class="feature-icon">🤖</span>
+      <div class="feature-title">AI Tools Marketplace</div>
+      <div class="feature-desc">Discover and compare the world's best AI tools. From productivity to creativity — all in one place.</div>
+    </div>
+    <div class="feature">
+      <span class="feature-icon">💻</span>
+      <div class="feature-title">SaaS Directory</div>
+      <div class="feature-desc">Find, compare and buy the best SaaS products for your business. Curated and verified.</div>
+    </div>
+    <div class="feature">
+      <span class="feature-icon">📦</span>
+      <div class="feature-title">Digital Products</div>
+      <div class="feature-desc">Templates, courses, ebooks, and digital assets from top creators worldwide.</div>
+    </div>
+    <div class="feature">
+      <span class="feature-icon">🤝</span>
+      <div class="feature-title">Consultancy Hub</div>
+      <div class="feature-desc">Connect with world-class AI & tech consultants to grow your business faster.</div>
+    </div>
+    <div class="feature">
+      <span class="feature-icon">🛠️</span>
+      <div class="feature-title">Tech Solutions</div>
+      <div class="feature-desc">Hardware, software and tech products for builders, makers and enterprises.</div>
+    </div>
+    <div class="feature">
+      <span class="feature-icon">🚀</span>
+      <div class="feature-title">More Coming Soon</div>
+      <div class="feature-desc">We're building the Amazon of the AI age. Every digital category. One deadly platform.</div>
+    </div>
+  </div>
+</section>
+
+<!-- WAITLIST -->
+<div class="waitlist-section">
+  <h2 class="waitlist-title">BE FIRST. BE LETHAL.</h2>
+  <p class="waitlist-desc">Join thousands of founders, builders and investors waiting for LethalLaunch to go live. Early access. Exclusive deals. No spam.</p>
+  <a href="https://forms.gle/your-google-form-link" target="_blank" class="btn-primary">🚀 Join The Waitlist Now</a>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Lethal<span>Launch</span></div>
+  <div class="footer-copy">© 2026 LETHALLAUNCH.COM — ALL RIGHTS RESERVED</div>
+</footer>
+
+</body>
+</html>
